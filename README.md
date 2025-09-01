@@ -1,73 +1,90 @@
-# Welcome to your Lovable project
+🎴 MemeCard – Multiplayer Meme Card Game
 
-## Project info
+MemeCard is a real-time multiplayer meme reaction game built with Next.js, React, Node.js, PostgreSQL, and Socket.IO.
 
-**URL**: https://lovable.dev/projects/180c86e6-e731-498c-99ae-6e21d285c9ac
+Players join a game room, take turns setting funny situations, and respond with meme cards from their hand. Everyone votes on the funniest response – laughter guaranteed 😂.
 
-## How can I edit this code?
+✨ Features
 
-There are several ways of editing your application.
+🔑 Create & Join Rooms – share a unique code with friends
 
-**Use Lovable**
+🎭 Player-Set Situations – one player per round sets a scenario
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/180c86e6-e731-498c-99ae-6e21d285c9ac) and start prompting.
+🎴 Meme Card Hands – each player gets random meme cards to play
 
-Changes made via Lovable will be committed automatically to this repo.
+🔥 Real-Time Gameplay – cards, votes, and scores update live
 
-**Use your preferred IDE**
+🏆 Scoring System – funniest meme wins the round
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+📱 Mobile-First UI – optimized for quick play on phones
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+🎮 Game Flow
 
-Follow these steps:
+Lobby – One player creates a room, others join with the code.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Round Start – A Leader is chosen, types a funny situation.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Play Phase – Other players drop a meme card from their rack.
 
-# Step 3: Install the necessary dependencies.
-npm i
+Reveal & Voting – Cards flip, everyone votes for the funniest.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+Scoring – Winner gets a point, Leader rotates, next round begins.
+
+🛠 Tech Stack
+
+Frontend: Next.js, React, TailwindCSS
+
+Backend: Node.js (API Routes), Socket.IO for realtime
+
+Database: PostgreSQL (Supabase for hosting)
+
+Hosting: Vercel (frontend) + Supabase (backend/DB)
+
+📊 Database Schema
+
+Games → tracks game sessions
+Players → player info, scores, hands
+Rounds → situations + round winners
+Plays → submitted meme cards + votes
+MemeCards → stored meme assets
+
+🚀 Getting Started
+Prerequisites
+
+Node.js 18+
+
+PostgreSQL (local or Supabase)
+
+Installation
+git clone https://github.com/yourusername/memecard.git
+cd memecard
+npm install
+
+Database Setup (Prisma Example)
+npx prisma migrate dev --name init
+npx prisma db seed
+
+Running the App
 npm run dev
-```
 
-**Edit a file directly in GitHub**
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+App runs on http://localhost:3000
+ 🎉
 
-**Use GitHub Codespaces**
+🔮 Future Plans
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Custom meme uploads
 
-## What technologies are used for this project?
+Emoji reactions + live chat
 
-This project is built with:
+AI-generated situations
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Global leaderboard
 
-## How can I deploy this project?
+🤝 Contributing
 
-Simply open [Lovable](https://lovable.dev/projects/180c86e6-e731-498c-99ae-6e21d285c9ac) and click on Share -> Publish.
+Pull requests are welcome! For major changes, please open an issue first to discuss.
 
-## Can I connect a custom domain to my Lovable project?
+📜 License
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+MIT License – free to use, modify, and share.
