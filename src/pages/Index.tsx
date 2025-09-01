@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -14,7 +14,21 @@ import { Plus, Users } from "lucide-react";
 const Index = () => {
   const [gameCode, setGameCode] = useState("");
   const [playerName, setPlayerName] = useState("");
-  const [currentGameCode, setCurrentGameCode] = useState<string>();
+  const [currentGameCode, setCurrentGameCode] = useState<string>(() => {
+    return localStorage.getItem("currentGameCode") || undefined;
+  });
+  // Restore currentPlayer from localStorage if needed
+  const [restoredPlayer, setRestoredPlayer] = useState<any>(() => {
+    const raw = localStorage.getItem("currentPlayer");
+    return raw ? JSON.parse(raw) : undefined;
+  });
+
+  // Persist currentGameCode
+  useEffect(() => {
+    if (currentGameCode) {
+      localStorage.setItem("currentGameCode", currentGameCode);
+    }
+  }, [currentGameCode]);
   
   const {
     game,
@@ -31,6 +45,13 @@ const Index = () => {
     voteForCard
   } = useGameState(currentGameCode);
 
+  // Persist currentPlayer
+  useEffect(() => {
+    if (currentPlayer) {
+      localStorage.setItem("currentPlayer", JSON.stringify(currentPlayer));
+    }
+  }, [currentPlayer]);
+
   const [selectedCard, setSelectedCard] = useState<string>();
 
   const handleCreateGame = async () => {
@@ -38,6 +59,7 @@ const Index = () => {
     const code = await createGame(playerName);
     if (code) {
       setCurrentGameCode(code);
+      localStorage.setItem("currentGameCode", code);
     }
   };
 
@@ -46,6 +68,7 @@ const Index = () => {
     const success = await joinGame(gameCode, playerName);
     if (success) {
       setCurrentGameCode(gameCode.toUpperCase());
+      localStorage.setItem("currentGameCode", gameCode.toUpperCase());
     }
   };
 

@@ -267,9 +267,11 @@ export const useGameState = (gameCode?: string) => {
       .select('*')
       .eq('game_id', game.id);
     
+    // Ensure is_leader is set for the correct player (leader_id from game)
     setPlayers((data || []).map(player => ({
       ...player,
-      hand: player.hand as string[]
+      hand: player.hand as string[],
+      is_leader: game?.leader_id === player.id
     })));
   };
 
@@ -324,6 +326,13 @@ export const useGameState = (gameCode?: string) => {
     if (game) {
       loadPlayers();
       loadCurrentRound();
+      // If currentPlayer exists, update is_leader status
+      if (currentPlayer && game.leader_id) {
+        setCurrentPlayer({
+          ...currentPlayer,
+          is_leader: currentPlayer.id === game.leader_id
+        });
+      }
     }
   }, [game]);
 
