@@ -6,197 +6,237 @@ import { SituationCard } from "@/components/SituationCard";
 import { PlayerHand } from "@/components/PlayerHand";
 import { GameBoard } from "@/components/GameBoard";
 import { Scoreboard } from "@/components/Scoreboard";
-import { Gamepad2, Users, Zap } from "lucide-react";
-
-// Import meme images
-import memeCat from "@/assets/meme-cat.jpg";
-import memeDog from "@/assets/meme-dog.jpg";
-import memeShocked from "@/assets/meme-shocked.jpg";
-import logo from "@/assets/logo.jpg";
+import { GameLobby } from "@/components/GameLobby";
+import { SituationInput } from "@/components/SituationInput";
+import { useGameState } from "@/hooks/useGameState";
+import { Plus, Users } from "lucide-react";
 
 const Index = () => {
-  const [gameState, setGameState] = useState<'lobby' | 'playing'>('lobby');
-  const [playerName, setPlayerName] = useState('');
-  const [roomCode, setRoomCode] = useState('');
-  const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const [gameCode, setGameCode] = useState("");
+  const [playerName, setPlayerName] = useState("");
+  const [currentGameCode, setCurrentGameCode] = useState<string>();
+  
+  const {
+    game,
+    players,
+    currentRound,
+    plays,
+    currentPlayer,
+    memeCards,
+    createGame,
+    joinGame,
+    startGame,
+    submitSituation,
+    playCard,
+    voteForCard
+  } = useGameState(currentGameCode);
 
-  // Mock data for demonstration
-  const mockCards = [
-    { id: '1', image: memeCat, alt: 'Surprised cat with headphones' },
-    { id: '2', image: memeDog, alt: 'Confused dog at computer' },
-    { id: '3', image: memeShocked, alt: 'Shocked person reaction' },
-    { id: '4', image: memeCat, alt: 'Another funny cat' },
-    { id: '5', image: memeDog, alt: 'Another confused dog' },
-    { id: '6', image: memeShocked, alt: 'Another shocked reaction' },
-  ];
+  const [selectedCard, setSelectedCard] = useState<string>();
 
-  const mockPlayedCards = [
-    { id: '1', image: memeCat, alt: 'Cat meme', playerName: 'Player1', votes: 3, canVote: true },
-    { id: '2', image: memeDog, alt: 'Dog meme', playerName: 'Player2', votes: 1, canVote: true },
-    { id: '3', image: memeShocked, alt: 'Shocked meme', playerName: 'Player3', votes: 2, canVote: true },
-  ];
-
-  const mockPlayers = [
-    { id: '1', name: 'You', score: 5, isYou: true, isLeader: true },
-    { id: '2', name: 'Alice', score: 3, isLeader: false },
-    { id: '3', name: 'Bob', score: 2, isLeader: false },
-    { id: '4', name: 'Charlie', score: 4, isLeader: false },
-  ];
-
-  const handleJoinGame = () => {
-    if (playerName.trim()) {
-      setGameState('playing');
+  const handleCreateGame = async () => {
+    if (!playerName.trim()) return;
+    const code = await createGame(playerName);
+    if (code) {
+      setCurrentGameCode(code);
     }
   };
 
-  const handleCreateGame = () => {
-    if (playerName.trim()) {
-      setRoomCode('MEME123');
-      setGameState('playing');
+  const handleJoinGame = async () => {
+    if (!playerName.trim() || !gameCode.trim()) return;
+    const success = await joinGame(gameCode, playerName);
+    if (success) {
+      setCurrentGameCode(gameCode.toUpperCase());
     }
   };
 
-  if (gameState === 'lobby') {
+  const handleCardSelect = (cardId: string) => {
+    if (game?.current_phase === 'playing' && !plays.find(p => p.player_id === currentPlayer?.id)) {
+      setSelectedCard(cardId);
+      playCard(cardId);
+    }
+  };
+
+  const handleVote = (playId: string) => {
+    if (game?.current_phase === 'voting') {
+      voteForCard(playId);
+    }
+  };
+
+  // Show main menu if no game
+  if (!currentGameCode || !game || !currentPlayer) {
     return (
-      <div className="min-h-screen bg-gradient-game flex items-center justify-center p-4">
+      <div className="min-h-screen bg-game-dark flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-8">
           {/* Logo */}
-          <div className="text-center">
-            <img 
-              src={logo} 
-              alt="Meme Chaos Logo" 
-              className="mx-auto w-64 h-32 object-contain mb-4 animate-glow"
-            />
-            <p className="text-lg text-muted-foreground">
-              The hilarious multiplayer meme card game!
-            </p>
+          <div className="text-center space-y-4">
+            <h1 className="text-5xl md:text-7xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              Meme Chaos
+            </h1>
+            <p className="text-xl text-game-light">The Ultimate Meme Card Game</p>
           </div>
 
-          {/* Join/Create Game Form */}
-          <Card className="p-6 bg-game-card border-border shadow-card-game">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Your Nickname
-                </label>
+          {/* Game Options */}
+          <Card className="p-6 bg-game-card border-neon-cyan shadow-glow">
+            <div className="space-y-6">
+              {/* Player Name Input */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Your Name</label>
                 <Input
                   type="text"
-                  placeholder="Enter your nickname..."
+                  placeholder="Enter your name"
                   value={playerName}
                   onChange={(e) => setPlayerName(e.target.value)}
-                  className="bg-background border-border text-foreground"
+                  className="bg-game-dark border-border text-foreground"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Room Code (Optional)
-                </label>
+              {/* Create Game */}
+              <Button 
+                onClick={handleCreateGame}
+                className="w-full bg-neon-purple hover:bg-neon-purple/80 text-white"
+                size="lg"
+                disabled={!playerName.trim()}
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Create New Game
+              </Button>
+
+              {/* Divider */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-border" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-game-card text-muted-foreground">OR</span>
+                </div>
+              </div>
+
+              {/* Join Game */}
+              <div className="space-y-3">
                 <Input
                   type="text"
-                  placeholder="Enter room code to join..."
-                  value={roomCode}
-                  onChange={(e) => setRoomCode(e.target.value)}
-                  className="bg-background border-border text-foreground"
+                  placeholder="Enter game code"
+                  value={gameCode}
+                  onChange={(e) => setGameCode(e.target.value.toUpperCase())}
+                  className="bg-game-dark border-border text-foreground"
                 />
-              </div>
-
-              <div className="space-y-3 pt-4">
-                <Button
+                <Button 
                   onClick={handleJoinGame}
-                  disabled={!playerName.trim()}
-                  className="w-full bg-gradient-primary hover:opacity-90 text-white font-bold py-3 shadow-neon"
+                  className="w-full bg-neon-green text-game-dark hover:bg-neon-green/80"
+                  size="lg"
+                  disabled={!playerName.trim() || !gameCode.trim()}
                 >
-                  <Users className="mr-2 h-4 w-4" />
-                  {roomCode ? 'Join Game' : 'Quick Match'}
-                </Button>
-                
-                <Button
-                  onClick={handleCreateGame}
-                  disabled={!playerName.trim()}
-                  variant="secondary"
-                  className="w-full bg-neon-cyan text-game-dark hover:bg-neon-cyan/90 font-bold py-3"
-                >
-                  <Gamepad2 className="mr-2 h-4 w-4" />
-                  Create Game
+                  <Users className="w-5 h-5 mr-2" />
+                  Join Game
                 </Button>
               </div>
             </div>
           </Card>
 
-          {/* Features */}
-          <div className="grid grid-cols-1 gap-4 text-center">
-            <div className="flex items-center justify-center space-x-2 text-neon-purple">
-              <Zap className="h-5 w-5" />
-              <span className="text-sm font-medium">Real-time multiplayer</span>
-            </div>
-            <div className="flex items-center justify-center space-x-2 text-neon-cyan">
-              <Users className="h-5 w-5" />
-              <span className="text-sm font-medium">Play with friends</span>
-            </div>
-            <div className="flex items-center justify-center space-x-2 text-neon-pink">
-              <Gamepad2 className="h-5 w-5" />
-              <span className="text-sm font-medium">Hilarious meme cards</span>
-            </div>
+          {/* Footer */}
+          <div className="text-center text-sm text-muted-foreground">
+            <p>Multiplayer meme mayhem awaits! 🎴</p>
           </div>
         </div>
       </div>
     );
   }
 
+  // Show lobby if game is waiting
+  if (game.status === 'waiting') {
+    return (
+      <GameLobby 
+        game={game}
+        players={players}
+        currentPlayer={currentPlayer}
+        onStartGame={startGame}
+      />
+    );
+  }
+
+  // Show situation input if it's situation phase
+  if (game.current_phase === 'situation') {
+    return (
+      <SituationInput
+        isLeader={currentPlayer.is_leader}
+        onSubmitSituation={submitSituation}
+      />
+    );
+  }
+
+  // Get played cards with vote counts and player info
+  const playedCards = plays.map(play => {
+    const player = players.find(p => p.id === play.player_id);
+    const meme = memeCards.find(m => m.id === play.meme_id);
+    return {
+      id: play.id,
+      image: meme?.image_url || '',
+      alt: `${meme?.id} meme`,
+      playerName: player?.name || 'Unknown',
+      votes: play.votes,
+      canVote: currentPlayer.id !== play.player_id
+    };
+  });
+
+  // Get current player's hand as meme card objects
+  const playerHand = currentPlayer.hand.map(memeId => {
+    const meme = memeCards.find(m => m.id === memeId);
+    return {
+      id: memeId,
+      image: meme?.image_url || '',
+      alt: `${memeId} meme`
+    };
+  });
+
+  // Show main game
   return (
-    <div className="min-h-screen bg-gradient-game">
-      {/* Header */}
-      <header className="border-b border-border bg-game-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <img src={logo} alt="Meme Chaos" className="h-8 object-contain" />
-            {roomCode && (
-              <div className="text-sm">
-                <span className="text-muted-foreground">Room:</span>
-                <span className="ml-1 font-mono font-bold text-neon-cyan">{roomCode}</span>
-              </div>
-            )}
-          </div>
-          
-          <Button 
-            variant="secondary" 
-            size="sm"
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          >
-            Leave Game
-          </Button>
+    <div className="min-h-screen bg-game-dark p-4">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="text-center">
+          <h1 className="text-3xl md:text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+            Meme Chaos
+          </h1>
+          <p className="text-game-light">
+            Round {game.current_round} - {game.current_phase === 'playing' ? 'Play Phase' : 'Voting Phase'}
+          </p>
         </div>
-      </header>
 
-      <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full">
-          {/* Scoreboard */}
-          <div className="lg:col-span-1">
-            <Scoreboard players={mockPlayers} />
-          </div>
-
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Main Game Area */}
           <div className="lg:col-span-3 space-y-6">
             {/* Situation Card */}
-            <SituationCard
-              situation="When you realize you've been on mute during the entire meeting..."
-              isLeader={true}
-              timeLeft={15}
-            />
-
+            {currentRound && (
+              <SituationCard 
+                situation={currentRound.situation || "Loading situation..."}
+                isLeader={currentPlayer.is_leader}
+              />
+            )}
+            
             {/* Game Board */}
-            <GameBoard
-              playedCards={mockPlayedCards}
-              votingPhase={true}
-              onVote={(cardId) => console.log('Voted for card:', cardId)}
+            <GameBoard 
+              playedCards={playedCards}
+              onVote={handleVote}
+              votingPhase={game.current_phase === 'voting'}
             />
-
+            
             {/* Player Hand */}
-            <PlayerHand
-              cards={mockCards}
+            <PlayerHand 
+              cards={playerHand}
               selectedCard={selectedCard}
-              onCardSelect={setSelectedCard}
+              onCardSelect={handleCardSelect}
+              disabled={game.current_phase !== 'playing' || !!plays.find(p => p.player_id === currentPlayer.id)}
+            />
+          </div>
+
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <Scoreboard 
+              players={players.map(p => ({
+                ...p,
+                isYou: p.id === currentPlayer.id,
+                isLeader: p.is_leader
+              }))} 
             />
           </div>
         </div>

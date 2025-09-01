@@ -14,7 +14,234 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      games: {
+        Row: {
+          code: string
+          created_at: string
+          current_phase: Database["public"]["Enums"]["round_phase"] | null
+          current_round: number | null
+          id: string
+          leader_id: string | null
+          status: Database["public"]["Enums"]["game_status"] | null
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          current_phase?: Database["public"]["Enums"]["round_phase"] | null
+          current_round?: number | null
+          id?: string
+          leader_id?: string | null
+          status?: Database["public"]["Enums"]["game_status"] | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          current_phase?: Database["public"]["Enums"]["round_phase"] | null
+          current_round?: number | null
+          id?: string
+          leader_id?: string | null
+          status?: Database["public"]["Enums"]["game_status"] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      meme_cards: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          image_url: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id: string
+          image_url: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string
+        }
+        Relationships: []
+      }
+      players: {
+        Row: {
+          created_at: string
+          game_id: string
+          hand: Json | null
+          id: string
+          is_leader: boolean | null
+          name: string
+          score: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          hand?: Json | null
+          id?: string
+          is_leader?: boolean | null
+          name: string
+          score?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          hand?: Json | null
+          id?: string
+          is_leader?: boolean | null
+          name?: string
+          score?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "players_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plays: {
+        Row: {
+          created_at: string
+          id: string
+          meme_id: string
+          player_id: string
+          round_id: string
+          votes: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meme_id: string
+          player_id: string
+          round_id: string
+          votes?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meme_id?: string
+          player_id?: string
+          round_id?: string
+          votes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plays_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plays_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rounds: {
+        Row: {
+          created_at: string
+          game_id: string
+          id: string
+          leader_id: string
+          round_number: number
+          situation: string | null
+          updated_at: string
+          winner_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          id?: string
+          leader_id: string
+          round_number: number
+          situation?: string | null
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          id?: string
+          leader_id?: string
+          round_number?: number
+          situation?: string | null
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rounds_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rounds_leader_id_fkey"
+            columns: ["leader_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rounds_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      votes: {
+        Row: {
+          created_at: string
+          id: string
+          play_id: string
+          voter_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          play_id: string
+          voter_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          play_id?: string
+          voter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "votes_play_id_fkey"
+            columns: ["play_id"]
+            isOneToOne: false
+            referencedRelation: "plays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "votes_voter_id_fkey"
+            columns: ["voter_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +250,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      game_status: "waiting" | "in_progress" | "finished"
+      round_phase: "situation" | "playing" | "voting" | "results"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +378,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      game_status: ["waiting", "in_progress", "finished"],
+      round_phase: ["situation", "playing", "voting", "results"],
+    },
   },
 } as const
